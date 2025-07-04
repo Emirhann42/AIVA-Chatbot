@@ -12,7 +12,7 @@
 * 🌙 **Dark Mode** toggle
 * 🗃️ **Chat history** saved to local file
 * 🔐 **API Key** prompt on first run
-* 📋 **User-friendly menu** (Clear History, Voice toggle, Exit)
+* 📋 **User-friendly menu** (Clear History, Voice toggle, Language Selection for TTS, Exit)
 
 ---
 
