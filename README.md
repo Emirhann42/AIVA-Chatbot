@@ -94,7 +94,6 @@ chat_history.txt
 
 * API key is **only kept in memory** (not saved).
 * Ensure internet access during API use.
-* Keep your `.exe` and `AIVA.ico` in the same folder for the icon to work.
 
 ---
 
