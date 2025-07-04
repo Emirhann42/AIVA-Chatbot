@@ -55,7 +55,7 @@ dist/AIVA.exe
 Use [PyInstaller](https://pyinstaller.org/) to compile to a standalone executable:
 
 ```bash
-pyinstaller --noconfirm --onefile --windowed aiva.py
+pyinstaller --noconfirm --onefile --windowed main.py
 ```
 
 Output will be in the `dist/` folder.
