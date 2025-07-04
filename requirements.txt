@@ -1,0 +1,5 @@
+tk
+pyttsx3
+SpeechRecognition
+google-generativeai
+pyinstaller
