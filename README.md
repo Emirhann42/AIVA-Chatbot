@@ -1,92 +1,124 @@
-🤖 AIVA Chatbot
+# 🧠 **AIVA Chatbot**
 
-AIVA is a desktop chatbot application powered by Gemini 2.0 Flash. It allows for both text and voice input/output, includes a dark mode, and stores your chat history locally for a smooth user experience.
+**AIVA** is a desktop chatbot powered by **Gemini 2.0 Flash**. It supports both text and voice interactions, dark mode, and saves your chat history locally for seamless conversations.
 
-✨ Features
+---
 
-💬 Gemini-powered responses using the Gemini 2.0 Flash API
+## ✨ **Features**
 
-🎤 Voice input with microphone using SpeechRecognition
+* 💬 **Gemini-powered AI responses**
+* 🎤 **Voice input** using `SpeechRecognition`
+* 🔊 **Voice output** using `pyttsx3`
+* 🌙 **Dark Mode** toggle
+* 🗃️ **Chat history** saved to local file
+* 🔐 **API Key** prompt on first run
+* 📋 **User-friendly menu** (Clear History, Voice toggle, Exit)
 
-🔊 Optional voice output using pyttsx3
+---
 
-🕶️ Dark Mode toggle
+## 📦 **Requirements**
 
-📀 Persistent chat history saved locally
+Install the necessary dependencies:
 
-🔐 API key prompt at startup
-
-📋 Menu with options like Clear History, Voice toggle, and Exit
-
-📦 Requirements
-
-Install the required dependencies with:
-
+```bash
 pip install -r requirements.txt
+```
 
-Or install manually:
+Or manually:
 
+```bash
 pip install tk pyttsx3 SpeechRecognition google-generativeai
+```
 
-🚀 How to Run
+---
 
-Run from source (Python required):
+## 🚀 **How to Run**
 
+### ▶️ Run from source (requires Python):
+
+```bash
 python aiva.py
+```
 
-Run as standalone app (after build):
+### 💻 Run the compiled app:
 
+```bash
 dist/AIVA.exe
+```
 
-Note: You must enter your Gemini API key when prompted the first time.
+> ℹ️ First launch will ask for your **Gemini API Key**.
 
-🛠 How to Build the App (.exe)
+---
 
-Use PyInstaller to convert the Python file into a standalone .exe:
+## 🛠️ **Build the App (.exe)**
 
+Use [PyInstaller](https://pyinstaller.org/) to compile to a standalone executable:
+
+```bash
 pyinstaller --noconfirm --onefile --windowed aiva.py
+```
 
-This creates a folder called dist/ containing AIVA.exe.
+Output will be in the `dist/` folder.
 
-🙈 .gitignore Contents
+---
 
+## 📁 **Project Structure**
+
+```
+📂 AIVA-Chatbot/
+├── aiva.py              # Main application file
+├── README.md            # Project documentation
+├── requirements.txt     # Python libraries
+├── .gitignore           # Git ignored files
+├── dist/                # Executable output folder
+├── build/               # PyInstaller build folder
+└── chat_history.txt     # Auto-generated chat history
+```
+
+---
+
+## 🚫 **.gitignore**
+
+```gitignore
 dist/
 build/
 __pycache__/
 *.exe
 *.log
 chat_history.txt
+```
 
-🧠 Notes
+---
 
-Your API key is stored in memory only — not saved.
+## 🧠 **Notes**
 
-The app will crash if no internet connection is available during API calls.
+* API key is **only kept in memory** (not saved).
+* Ensure internet access during API use.
+* Keep your `.exe` and `AIVA.ico` in the same folder for the icon to work.
 
-Be sure to keep your .exe and AIVA.ico in the same folder if you use a custom icon.
+---
 
-📦 GitHub Release (Optional)
+## 📦 **GitHub Release (optional)**
 
-If you want to share your .exe file:
+To share your executable via GitHub:
 
-Go to your GitHub repo → Releases
+1. Go to your repo → **Releases**
+2. Click **"Draft a new release"**
+3. Tag: `v1.0.0`
+4. Title: `First Release`
+5. Description: `Initial release of AIVA chatbot`
+6. Upload your `.exe` from `dist/`
+7. Click **Publish**
 
-Click "Draft a new release"
+---
 
-Tag: v1.0.0
+## 👨‍💻 **Author**
 
-Title: First Release
+Created by **Emirhan Huseyin**
+🔗 [GitHub Profile](https://github.com/emirhanhuseyin)
 
-Description: Initial release of the AIVA chatbot
+---
 
-Upload your .exe file from dist/
+## ⚠️ **Disclaimer**
 
-Click Publish
-
-👨‍💼 Author
-
-Created by Emirhan HuseyinGitHub Profile
-
-🔐 Disclaimer
-
-This project uses the Google Gemini API via the google-generativeai package.You must supply your own API key to use the chatbot.
+This project uses **Google Gemini API** via `google-generativeai`. You must provide your own API key to use the chatbot.
