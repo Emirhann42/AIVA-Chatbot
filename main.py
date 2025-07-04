@@ -1,47 +1,63 @@
 import tkinter as tk
-from tkinter import scrolledtext, messagebox, filedialog
-import pyttsx3
+from tkinter import scrolledtext, messagebox
 import speech_recognition as sr
 from google import genai
 import threading
 import os
+import asyncio
+import edge_tts
+from playsound import playsound
 
-# Global variables and setup
-client = None
-history_file = "chat_history.txt"
+# Global variables
+client = None  # Gemini API client will be initialized after API key input
+history_file = "chat_history.txt"  # File to save/load chat history
 
-engine = pyttsx3.init()
-engine.setProperty('rate', 160)
 
-# --- Voice language setting ---
-def set_voice_language(lang_code):
-    voices = engine.getProperty('voices')
-    selected_voice = None
-    for voice in voices:
-        # voice.languages or voice.id or voice.name contain language info, check these
-        if lang_code.lower() in voice.id.lower() or lang_code.lower() in voice.name.lower():
-            selected_voice = voice.id
-            break
-    if selected_voice:
-        engine.setProperty('voice', selected_voice)
+# Asynchronous function to convert text to speech using edge-tts
+async def edge_speak(text, voice="en-US-JennyNeural"):
+    filename = "output.mp3"
+    communicate = edge_tts.Communicate(text, voice)
+    await communicate.save(filename)
+    playsound(filename)
+    os.remove(filename)
+
+
+# Run text-to-speech in a separate thread to avoid blocking the GUI
+def speak_text(text):
+    lang = voice_language.get()
+    # Select voice based on language
+    if lang == 'nl-NL':
+        voice = "nl-NL-FennaNeural"
     else:
-        print(f"Voice for language '{lang_code}' not found, using default voice.")
+        voice = "en-US-JennyNeural"
+    threading.Thread(target=lambda: asyncio.run(edge_speak(text, voice))).start()
+
+
+# Handle changes in voice language (placeholder for future functionality)
+def set_voice_language(lang_code):
+    print(f"Voice language set to {lang_code} (handled by edge-tts)")
+
 
 def on_voice_language_change(*args):
     lang = voice_language.get()
     set_voice_language(lang)
 
-# --- Chat history management functions ---
+
+# Save chat messages to a text file for persistence
 def save_to_history(speaker, message):
     with open(history_file, "a", encoding="utf-8") as file:
         file.write(f"{speaker}: {message}\n")
 
+
+# Load chat history from file at startup
 def load_history():
     if os.path.exists(history_file):
         with open(history_file, "r", encoding="utf-8") as file:
             return file.read()
     return ""
 
+
+# Clear chat history both in file and on screen
 def clear_history():
     if os.path.exists(history_file):
         open(history_file, "w").close()
@@ -49,7 +65,8 @@ def clear_history():
     chat_area.delete(1.0, tk.END)
     chat_area.config(state='disabled')
 
-# --- Chat interaction functions ---
+
+# Call Gemini API to get a response based on user input
 def get_gemini_response(user_input):
     if not client:
         return "Error: API key not set."
@@ -59,31 +76,36 @@ def get_gemini_response(user_input):
     except Exception as e:
         return f"Error: {e}"
 
-def speak_text(text):
-    engine.say(text)
-    engine.runAndWait()
 
+# Use speech recognition to listen to user voice input and insert text into entry
 def listen_and_insert():
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
         try:
+            # Show listening status in chat area
             chat_area.config(state='normal')
             chat_area.insert(tk.END, "🎙️ Listening...\n", "bot")
             chat_area.config(state='disabled')
             chat_area.see(tk.END)
+
             audio = recognizer.listen(source, timeout=5)
             lang = voice_language.get()
             text = recognizer.recognize_google(audio, language=lang)
+
+            # Insert recognized text into entry widget
             entry.insert(tk.END, text)
             send_message()
         except Exception as e:
             messagebox.showerror("Voice Input Error", str(e))
 
+
+# Handle sending of message: display, save, get response, and optionally speak
 def send_message():
     user_input = entry.get().strip()
     if not user_input:
         return
 
+    # Display user message
     chat_area.config(state='normal')
     chat_area.insert(tk.END, f"You: {user_input}\n", "user")
     chat_area.see(tk.END)
@@ -91,18 +113,22 @@ def send_message():
 
     save_to_history("You", user_input)
 
+    # Get AI response
     bot_resp = get_gemini_response(user_input)
 
+    # Display AI response
     chat_area.insert(tk.END, f"AIVA: {bot_resp}\n\n", "bot")
     save_to_history("AIVA", bot_resp)
 
+    # Optionally speak the AI response
     if voice_output_enabled.get():
         speak_text(bot_resp)
 
     chat_area.config(state='disabled')
     chat_area.see(tk.END)
 
-# --- UI Appearance ---
+
+# Toggle between dark mode and light mode UI colors
 def toggle_dark_mode():
     if dark_mode_enabled.get():
         root.configure(bg="#2E2E2E")
@@ -125,9 +151,11 @@ def toggle_dark_mode():
         chat_area.tag_config("bot", foreground="black")
         entry_frame.configure(bg="SystemButtonFace")
 
-# --- API Key prompt window ---
+
+# Popup window to ask user for Gemini API key
 def ask_for_api():
     def on_close():
+        # If no API key entered, close the whole app
         if not api_entry.get().strip():
             root.destroy()
 
@@ -139,7 +167,7 @@ def ask_for_api():
         global client
         try:
             client = genai.Client(api_key=api)
-            # Test API key validity by making a quick test request
+            # Test API key with a simple request
             test_resp = client.models.generate_content(model='gemini-2.0-flash', contents="Hello")
             if not test_resp or not hasattr(test_resp, 'text'):
                 raise Exception("Invalid API response")
@@ -163,38 +191,42 @@ def ask_for_api():
     tk.Button(api_window, text="Submit", command=save_api).pack(side='left', padx=10)
     api_entry.focus()
 
-# --- Main GUI Setup ---
+
+# === GUI Setup ===
+
 root = tk.Tk()
 root.title("AIVA")
 root.geometry("800x600")
 root.minsize(height=600, width=800)
 
+# Try to set an icon if available
 try:
     root.iconbitmap(default='../AIVA.ico')
 except Exception:
     pass
 
+# Variables for UI state
 voice_output_enabled = tk.BooleanVar(value=False)
 dark_mode_enabled = tk.BooleanVar(value=True)
-voice_language = tk.StringVar(value='en-US')  # Default to English
+voice_language = tk.StringVar(value='en-US')
 
-# Bind trace to change voice on language change
 voice_language.trace_add('write', on_voice_language_change)
 
+# Top menu frame with a menu button
 menu_frame = tk.Frame(root, height=30)
 menu_frame.pack(fill=tk.X)
 
 menu_button = tk.Button(root, text="☰", font=("Arial", 14), relief="flat", bd=0)
 menu_button.place(x=4, y=2)
 
-# Popup menu with commands (functions already defined above)
+# Popup menu for settings
 popup_menu = tk.Menu(root, tearoff=0)
 popup_menu.add_checkbutton(label="Dark Mode", onvalue=True, offvalue=False, variable=dark_mode_enabled, command=toggle_dark_mode)
 popup_menu.add_checkbutton(label="Voice Output", onvalue=True, offvalue=False, variable=voice_output_enabled)
 popup_menu.add_command(label="Clear History", command=clear_history)
 popup_menu.add_separator()
 
-# Add submenu for voice input language selection
+# Submenu for voice input language selection
 voice_lang_menu = tk.Menu(popup_menu, tearoff=0)
 popup_menu.add_cascade(label="Voice Input Language", menu=voice_lang_menu)
 voice_lang_menu.add_radiobutton(label="English", variable=voice_language, value='en-US')
@@ -202,16 +234,20 @@ voice_lang_menu.add_radiobutton(label="Dutch", variable=voice_language, value='n
 
 popup_menu.add_command(label="Exit", command=root.quit)
 
+# Bind menu button to show popup menu
 menu_button.bind("<Button-1>", lambda event: popup_menu.tk_popup(event.x_root, event.y_root))
 
+# Title label in the menu frame
 title = tk.Label(menu_frame, text="AIVA", font=("Arial", 20))
 title.place(relx=0.5, rely=0.6, anchor="center")
 
+# Chat display area (scrollable)
 chat_area = scrolledtext.ScrolledText(root, wrap=tk.WORD, state='disabled', font=("Arial", 12), bg="#333")
 chat_area.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
 chat_area.tag_config("user", foreground="white")
 chat_area.tag_config("bot", foreground="white")
 
+# Entry frame containing the input box and buttons
 entry_frame = tk.Frame(root, bg="#2E2E2E")
 entry_frame.pack(padx=10, pady=5, fill=tk.X)
 
@@ -225,16 +261,17 @@ send_button.pack(side=tk.RIGHT)
 mic_button = tk.Button(entry_frame, text="🎤", command=lambda: threading.Thread(target=listen_and_insert).start())
 mic_button.pack(side=tk.RIGHT, padx=5)
 
-# Load chat history on startup
+# Load previous chat history if available
 chat_area.config(state='normal')
 chat_area.insert(tk.END, load_history())
 chat_area.config(state='disabled')
 
-# Set initial UI theme and voice
+# Apply initial dark mode settings and set voice language
 toggle_dark_mode()
 set_voice_language(voice_language.get())
 
-# Ask for API key before starting main loop
+# Prompt user for API key before starting chat
 ask_for_api()
 
+# Start the main GUI loop
 root.mainloop()
