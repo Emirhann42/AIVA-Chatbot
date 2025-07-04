@@ -1,0 +1,6 @@
+dist/ 
+build/ 
+__pycache__/ 
+*.exe 
+*.log 
+chat_history.txt 
