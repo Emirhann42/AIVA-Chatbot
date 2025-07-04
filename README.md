@@ -66,7 +66,7 @@ Output will be in the `dist/` folder.
 
 ```
 📂 AIVA-Chatbot/
-├── aiva.py              # Main application file
+├── main.py              # Main application file
 ├── README.md            # Project documentation
 ├── requirements.txt     # Python libraries
 ├── .gitignore           # Git ignored files
