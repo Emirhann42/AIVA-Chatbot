@@ -97,27 +97,6 @@ chat_history.txt
 
 ---
 
-## 📦 **GitHub Release (optional)**
-
-To share your executable via GitHub:
-
-1. Go to your repo → **Releases**
-2. Click **"Draft a new release"**
-3. Tag: `v1.0.0`
-4. Title: `First Release`
-5. Description: `Initial release of AIVA chatbot`
-6. Upload your `.exe` from `dist/`
-7. Click **Publish**
-
----
-
-## 👨‍💻 **Author**
-
-Created by **Emirhan Huseyin**
-🔗 [GitHub Profile](https://github.com/emirhanhuseyin)
-
----
-
 ## ⚠️ **Disclaimer**
 
 This project uses **Google Gemini API** via `google-generativeai`. You must provide your own API key to use the chatbot.
