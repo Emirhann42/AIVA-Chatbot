@@ -13,6 +13,24 @@ history_file = "chat_history.txt"
 engine = pyttsx3.init()
 engine.setProperty('rate', 160)
 
+# --- Voice language setting ---
+def set_voice_language(lang_code):
+    voices = engine.getProperty('voices')
+    selected_voice = None
+    for voice in voices:
+        # voice.languages or voice.id or voice.name contain language info, check these
+        if lang_code.lower() in voice.id.lower() or lang_code.lower() in voice.name.lower():
+            selected_voice = voice.id
+            break
+    if selected_voice:
+        engine.setProperty('voice', selected_voice)
+    else:
+        print(f"Voice for language '{lang_code}' not found, using default voice.")
+
+def on_voice_language_change(*args):
+    lang = voice_language.get()
+    set_voice_language(lang)
+
 # --- Chat history management functions ---
 def save_to_history(speaker, message):
     with open(history_file, "a", encoding="utf-8") as file:
@@ -54,7 +72,8 @@ def listen_and_insert():
             chat_area.config(state='disabled')
             chat_area.see(tk.END)
             audio = recognizer.listen(source, timeout=5)
-            text = recognizer.recognize_google(audio)
+            lang = voice_language.get()
+            text = recognizer.recognize_google(audio, language=lang)
             entry.insert(tk.END, text)
             send_message()
         except Exception as e:
@@ -150,13 +169,17 @@ root.title("AIVA")
 root.geometry("800x600")
 root.minsize(height=600, width=800)
 
-voice_output_enabled = tk.BooleanVar(value=False)
-dark_mode_enabled = tk.BooleanVar(value=True)
-
 try:
     root.iconbitmap(default='../AIVA.ico')
 except Exception:
     pass
+
+voice_output_enabled = tk.BooleanVar(value=False)
+dark_mode_enabled = tk.BooleanVar(value=True)
+voice_language = tk.StringVar(value='en-US')  # Default to English
+
+# Bind trace to change voice on language change
+voice_language.trace_add('write', on_voice_language_change)
 
 menu_frame = tk.Frame(root, height=30)
 menu_frame.pack(fill=tk.X)
@@ -169,6 +192,14 @@ popup_menu = tk.Menu(root, tearoff=0)
 popup_menu.add_checkbutton(label="Dark Mode", onvalue=True, offvalue=False, variable=dark_mode_enabled, command=toggle_dark_mode)
 popup_menu.add_checkbutton(label="Voice Output", onvalue=True, offvalue=False, variable=voice_output_enabled)
 popup_menu.add_command(label="Clear History", command=clear_history)
+popup_menu.add_separator()
+
+# Add submenu for voice input language selection
+voice_lang_menu = tk.Menu(popup_menu, tearoff=0)
+popup_menu.add_cascade(label="Voice Input Language", menu=voice_lang_menu)
+voice_lang_menu.add_radiobutton(label="English", variable=voice_language, value='en-US')
+voice_lang_menu.add_radiobutton(label="Dutch", variable=voice_language, value='nl-NL')
+
 popup_menu.add_command(label="Exit", command=root.quit)
 
 menu_button.bind("<Button-1>", lambda event: popup_menu.tk_popup(event.x_root, event.y_root))
@@ -199,8 +230,9 @@ chat_area.config(state='normal')
 chat_area.insert(tk.END, load_history())
 chat_area.config(state='disabled')
 
-# Set initial UI theme
+# Set initial UI theme and voice
 toggle_dark_mode()
+set_voice_language(voice_language.get())
 
 # Ask for API key before starting main loop
 ask_for_api()
