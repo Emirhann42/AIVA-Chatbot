@@ -1,5 +1,6 @@
 tk
-pyttsx3
 SpeechRecognition
 google-generativeai
-pyinstaller
+edge-tts
+playsound==1.2.2
+pyaudio
